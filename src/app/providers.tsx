@@ -1,9 +1,10 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { ConfigProvider } from "antd";
 import { ThemeProvider } from "styled-components";
+import LazyLoaderProgress from "@/components/LazyLoaderProgress";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false } },
@@ -21,7 +22,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={qc}>
       <ConfigProvider>
-        <ThemeProvider theme={theme}>{children}</ThemeProvider>
+        <ThemeProvider theme={theme}>
+          <Suspense fallback={<LazyLoaderProgress />}>{children}</Suspense>
+        </ThemeProvider>
       </ConfigProvider>
     </QueryClientProvider>
   );

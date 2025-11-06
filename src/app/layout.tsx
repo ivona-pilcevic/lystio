@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "antd/dist/reset.css";
-import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
+import Providers from "./providers";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
@@ -19,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${plusJakartaSans.variable}`}>{children}</body>
+      <body className={`${plusJakartaSans.variable}`}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
