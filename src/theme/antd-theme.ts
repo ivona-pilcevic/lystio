@@ -6,6 +6,7 @@ const COLORS = {
   text: "#1F2937",
   textSecondary: "#6B7280",
   border: "#EEE7FF",
+  white: "#FFFFFF",
 } as const;
 
 const TYPOGRAPHY = {
