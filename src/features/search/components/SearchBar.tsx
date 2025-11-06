@@ -1,6 +1,6 @@
 "use client";
+import dynamic from "next/dynamic";
 
-import { AddressAutofill } from "@mapbox/search-js-react";
 import { RentType } from "../utils/types";
 import { MAPBOX_CONFIG } from "../utils/constants";
 import useSearchFilters from "../hooks/useSearchFilters";
@@ -8,6 +8,11 @@ import useFetchRecentSearches from "../hooks/api/useFetchRecentSearches";
 import useFetchPopularBoundaries from "../hooks/api/useFetchPopularBoundaries";
 import useFetchPriceHistogram from "../hooks/api/useFetchPriceHistogram";
 import useFetchTenementCount from "../hooks/api/useFetchTenementCount";
+
+const AddressAutofill = dynamic(
+  () => import("@mapbox/search-js-react").then((mod) => mod.AddressAutofill),
+  { ssr: false }
+);
 
 const SearchBar = () => {
   const filters = useSearchFilters();
