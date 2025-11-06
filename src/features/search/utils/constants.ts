@@ -1,13 +1,15 @@
 import { ICategory } from "./types";
 
 export const CATEGORIES: ICategory[] = [
-  { id: 1, name: "Apartment" },
-  { id: 2, name: "House" },
-  { id: 3, name: "Commercial" },
-  { id: 4, name: "Parking" },
-  { id: 5, name: "Office" },
-  { id: 6, name: "Land" },
-  { id: 7, name: "Storage" },
+  { id: 2, name: "Apartment" },
+  { id: 3, name: "House" },
+  { id: 1, name: "Rooms/Co-Living" },
+  { id: 4, name: "Plots" },
+  { id: 20, name: "Office" },
+  { id: 5, name: "Commercial propety" },
+  { id: 12, name: "New construction projects" },
+  { id: 11, name: "Holiday Homes" },
+  { id: 13, name: "Parking" },
 ];
 
 export const MAPBOX_CONFIG = {
