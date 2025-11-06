@@ -10,6 +10,11 @@ export const CollapsedContainer = styled.div`
   gap: ${({ theme }) => theme.spacing.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.borderRadius.full};
+  transition: all 0.2s;
+
+  &:hover {
+    box-shadow: ${({ theme }) => theme.shadows.md};
+  }
 
   @media (max-width: ${BREAKPOINTS.TABLET_MAX}px) {
     gap: ${({ theme }) => theme.spacing.sm};
