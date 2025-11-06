@@ -1,5 +1,5 @@
 "use client";
-import SearchBar from "@/features/search/components/SearchBar";
+import Logo from "@/components/Header/Logo";
 import styled from "styled-components";
 
 export interface IProps {}
@@ -7,7 +7,9 @@ export interface IProps {}
 const Header: React.FC<IProps> = () => {
   return (
     <HeaderContainer>
-      <LeftSection>LOGO</LeftSection>
+      <LeftSection>
+        <Logo />
+      </LeftSection>
       <CenterSection>Search Bar</CenterSection>
       <RightSection>Create Listing Language</RightSection>
     </HeaderContainer>
