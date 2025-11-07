@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "antd/dist/reset.css";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Providers from "./providers";
-import Header from "@/components/common/Header";
+import SearchBar from "@/features/search/components/SearchBar";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
@@ -23,7 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${plusJakartaSans.variable}`}>
         <Providers>
-          <Header />
+          <SearchBar />
           {children}
         </Providers>
       </body>

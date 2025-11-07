@@ -35,10 +35,10 @@ const LogoImage = styled(Image)`
   height: 37px;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    height: 28px;
+    max-height: 28px;
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    height: 24px;
+    max-height: 24px;
   }
 `;

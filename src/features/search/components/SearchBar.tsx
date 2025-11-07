@@ -1,187 +1,311 @@
 "use client";
-import dynamic from "next/dynamic";
-
-import { RentType } from "../utils/types";
-import { MAPBOX_CONFIG } from "../utils/constants";
+import { useState } from "react";
+import styled from "styled-components";
 import useSearchFilters from "../hooks/useSearchFilters";
 import useFetchRecentSearches from "../hooks/api/useFetchRecentSearches";
 import useFetchPopularBoundaries from "../hooks/api/useFetchPopularBoundaries";
 import useFetchPriceHistogram from "../hooks/api/useFetchPriceHistogram";
 import useFetchTenementCount from "../hooks/api/useFetchTenementCount";
-
-const AddressAutofill = dynamic(
-  () => import("@mapbox/search-js-react").then((mod) => mod.AddressAutofill),
-  { ssr: false }
-);
+import ActionToggles from "./ActionToggles";
+import LocationInput from "./LocationInput";
+import CategoryDropdown from "./CategoryDropdown";
+import PriceSliderWithHistogram from "./PriceSliderWithHistogram";
+import VerifiedCount from "./VerifiedCount";
+import FiltersSummaryBar from "./FiltersSummaryBar";
+import Logo from "@/components/Header/Logo";
+import { Button } from "antd";
+import { HeartOutlined, HomeOutlined } from "@ant-design/icons";
 
 const SearchBar = () => {
   const filters = useSearchFilters();
-  const {
-    recentSearches,
-    isLoadingRecentSearches,
-    errorFetchingRecentSearches,
-  } = useFetchRecentSearches();
-  const {
-    popularBoundaries,
-    isLoadingPopularBoundaries,
-    errorFetchingPopularBoundaries,
-  } = useFetchPopularBoundaries();
-  const {
-    priceHistogram,
-    isLoadingPriceHistogram,
-    errorFetchingPriceHistogram,
-  } = useFetchPriceHistogram(filters.filterPayloadForHistogram);
-  const { tenementCount, isLoadingTenementCount, errorFetchingTenementCount } =
-    useFetchTenementCount(filters.filterPayload);
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
+  const { recentSearches, isLoadingRecentSearches } = useFetchRecentSearches();
+  const { popularBoundaries, isLoadingPopularBoundaries } =
+    useFetchPopularBoundaries();
+  const { priceHistogram, isLoadingPriceHistogram } = useFetchPriceHistogram(
+    filters.filterPayloadForHistogram
+  );
+  const { tenementCount, isLoadingTenementCount } = useFetchTenementCount(
+    filters.filterPayload
+  );
+
+  const handleLocationSelect = (location: {
+    id: string;
+    name: string;
+    coordinates: [number, number];
+  }) => {
+    setSelectedLocation(location.name);
+    filters.toggleBoundary(location.id);
+  };
 
   return (
-    <div>
-      <h1>Lystio Search</h1>
+    <>
+      <FiltersSummaryBar
+        rentType={filters.rentType}
+        location={selectedLocation}
+        categoryCount={filters.selectedCategories.length}
+        priceRange={filters.priceRange}
+        onOpenFilters={() => setIsFiltersOpen(true)}
+      />
 
-      <div>
-        <h2>Rent Type</h2>
-        <p>Current: {filters.rentType}</p>
-        <button onClick={filters.toggleRentType}>Toggle Rent/Buy</button>
-        <button onClick={() => filters.setRentType(RentType.RENT)}>
-          Set Rent
-        </button>
-        <button onClick={() => filters.setRentType(RentType.BUY)}>
-          Set Buy
-        </button>
-      </div>
+      <Container>
+        <Header>
+          <Logo />
+          <ActionToggles
+            activeRentType={filters.rentType}
+            onRentTypeChange={filters.setRentType}
+          />
 
-      <div>
-        <h2>Mapbox Address Search</h2>
-        <form>
-          <AddressAutofill
-            accessToken={MAPBOX_CONFIG.token}
-            options={{
-              language: MAPBOX_CONFIG.language,
-              country: MAPBOX_CONFIG.country,
-            }}
-          >
-            <input
-              type="text"
-              name="address"
-              placeholder="Search for an address in Austria..."
-              autoComplete="address-line1"
-            />
-          </AddressAutofill>
-        </form>
-      </div>
+          <Actions>
+            <StyledButton type="link" icon={<HomeOutlined />}>
+              Create Listing
+            </StyledButton>
+            <IconButton aria-label="Favorites">
+              <StyledHeartIcon />
+              <NotificationBadge>15</NotificationBadge>
+            </IconButton>
+            <Avatar>
+              <AvatarText>JK</AvatarText>
+            </Avatar>
+          </Actions>
+        </Header>
 
-      <div>
-        <h2>Recent Searches</h2>
-        {isLoadingRecentSearches && <p>Loading...</p>}
-        {errorFetchingRecentSearches && (
-          <p style={{ color: "red" }}>Error loading recent searches</p>
-        )}
-        {recentSearches && <pre>{JSON.stringify(recentSearches, null, 2)}</pre>}
-      </div>
+        <SearchSection>
+          <SearchControls>
+            <ControlGroup>
+              <Label>Where</Label>
+              <LocationInput
+                value={selectedLocation}
+                onChange={setSelectedLocation}
+                onSelect={handleLocationSelect}
+                recentSearches={recentSearches}
+                popularBoundaries={popularBoundaries}
+                isLoadingRecent={isLoadingRecentSearches}
+                isLoadingPopular={isLoadingPopularBoundaries}
+              />
+            </ControlGroup>
 
-      <div>
-        <h2>Popular Boundaries</h2>
-        {isLoadingPopularBoundaries && <p>Loading...</p>}
-        {errorFetchingPopularBoundaries && (
-          <p style={{ color: "red" }}>Error loading boundaries</p>
-        )}
-        {popularBoundaries && (
-          <div>
-            <p>Count: {popularBoundaries.length}</p>
-            <ul>
-              {popularBoundaries.slice(0, 5).map((b) => (
-                <li key={b.id}>
-                  {b.name} ({b.id})
-                  <button onClick={() => filters.toggleBoundary(b.id)}>
-                    {filters.selectedBoundaries.includes(b.id)
-                      ? "Remove"
-                      : "Add"}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <p>Selected: {filters.selectedBoundaries.join(", ") || "None"}</p>
-          </div>
-        )}
-      </div>
+            <Divider />
 
-      <div>
-        <h2>Price Range</h2>
-        <input
-          type="number"
-          placeholder="Min"
-          onChange={(e) => {
-            const val = parseInt(e.target.value);
-            filters.updatePriceRange([
-              val || 0,
-              filters.priceRange?.[1] || 2000,
-            ]);
-          }}
-        />
-        <input
-          type="number"
-          placeholder="Max"
-          onChange={(e) => {
-            const val = parseInt(e.target.value);
-            filters.updatePriceRange([
-              filters.priceRange?.[0] || 0,
-              val || 2000,
-            ]);
-          }}
-        />
-        <p>
-          Current:{" "}
-          {filters.priceRange
-            ? `${filters.priceRange[0]} - ${filters.priceRange[1]}`
-            : "Not set"}
-        </p>
-      </div>
+            <ControlGroup>
+              <Label>What</Label>
+              <CategoryDropdown
+                selectedCategories={filters.selectedCategories}
+                onToggleCategory={filters.toggleCategory}
+              />
+            </ControlGroup>
 
-      <div>
-        <h2>Price Histogram</h2>
-        {isLoadingPriceHistogram && <p>Loading...</p>}
-        {errorFetchingPriceHistogram && (
-          <p style={{ color: "red" }}>Error loading histogram</p>
-        )}
-        {priceHistogram && (
-          <div>
-            <p>
-              Range: {priceHistogram.range[0]} - {priceHistogram.range[1]}
-            </p>
-            <p>Buckets: {priceHistogram.histogram.length}</p>
-            <pre>{JSON.stringify(priceHistogram.histogram, null, 2)}</pre>
-          </div>
-        )}
-      </div>
+            <Divider />
 
-      <div>
-        <h2>Tenement Count</h2>
-        {isLoadingTenementCount && <p>Loading...</p>}
-        {errorFetchingTenementCount && (
-          <p style={{ color: "red" }}>Error loading count</p>
-        )}
-        {tenementCount && (
-          <div>
-            <p style={{ fontSize: "24px", fontWeight: "bold" }}>
-              {tenementCount.count} verified listings
-            </p>
-          </div>
-        )}
-      </div>
+            <ControlGroup>
+              <Label>Price</Label>
+              <PriceSliderWithHistogram
+                histogram={priceHistogram}
+                priceRange={filters.priceRange}
+                onPriceChange={filters.updatePriceRange}
+                isLoading={isLoadingPriceHistogram}
+              />
+            </ControlGroup>
 
-      <div>
-        <h2>Filter Payload (sent to API)</h2>
-        <pre>{JSON.stringify(filters.filterPayload, null, 2)}</pre>
-      </div>
+            <SearchButton type="button" aria-label="Search">
+              Search
+            </SearchButton>
+          </SearchControls>
 
-      <button
-        onClick={filters.resetFilters}
-        style={{ padding: "10px 20px", fontSize: "16px" }}
-      >
-        Reset All Filters
-      </button>
-    </div>
+          <VerifiedCount
+            count={tenementCount?.count}
+            isLoading={isLoadingTenementCount}
+          />
+        </SearchSection>
+      </Container>
+    </>
   );
 };
 
 export default SearchBar;
+
+const Container = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.desktop}) {
+    display: none;
+  }
+`;
+
+const Header = styled.header`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.xl}`};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.borderLight};
+`;
+
+const Actions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const ActionButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-weight: ${({ theme }) => theme.typography.weights.medium};
+  color: ${({ theme }) => theme.colors.primary};
+  background: ${({ theme }) => theme.colors.primaryLight};
+  border: none;
+  border-radius: ${({ theme }) => theme.borderRadius.base};
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.purple100};
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+
+const PlusIcon = styled.span`
+  font-size: ${({ theme }) => theme.typography.sizes.lg};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+`;
+
+const IconButton = styled.button`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: ${({ theme }) => theme.spacing["2xl"]};
+  height: ${({ theme }) => theme.spacing["2xl"]};
+  color: ${({ theme }) => theme.colors.text};
+  background: transparent;
+  border: none;
+  border-radius: ${({ theme }) => theme.borderRadius.base};
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.gray50};
+  }
+`;
+
+const NotificationBadge = styled.div`
+  position: absolute;
+  top: ${({ theme }) => theme.spacing.xs};
+  right: ${({ theme }) => theme.spacing.xs};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: ${({ theme }) => theme.spacing.md};
+  height: ${({ theme }) => theme.spacing.md};
+  padding: 0 ${({ theme }) => theme.spacing.xs};
+  background: ${({ theme }) => theme.colors.error};
+  color: ${({ theme }) => theme.colors.white};
+  font-size: ${({ theme }) => theme.typography.sizes.xs};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  border-radius: ${({ theme }) => theme.borderRadius.full};
+`;
+
+const Avatar = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: ${({ theme }) => theme.spacing["2xl"]};
+  height: ${({ theme }) => theme.spacing["2xl"]};
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
+  border-radius: ${({ theme }) => theme.borderRadius.full};
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.primaryHover};
+  }
+`;
+
+const AvatarText = styled.span`
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+`;
+
+const SearchSection = styled.div`
+  padding: ${({ theme }) => `${theme.spacing.lg} ${theme.spacing.xl}`};
+`;
+
+const SearchControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.lg}`};
+  background: ${({ theme }) => theme.colors.backgroundLight};
+  border-radius: ${({ theme }) => theme.borderRadius.full};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+const ControlGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xs};
+  flex: 1;
+  min-width: 0;
+`;
+
+const Label = styled.label`
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  color: ${({ theme }) => theme.colors.text};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+`;
+
+const Divider = styled.div`
+  width: 1px;
+  height: ${({ theme }) => theme.spacing.xl};
+  background: ${({ theme }) => theme.colors.gray200};
+`;
+
+const SearchButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing["2xl"]}`};
+  font-size: ${({ theme }) => theme.typography.sizes.md};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-weight: ${({ theme }) => theme.typography.weights.medium};
+  color: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.primary};
+  border: none;
+  border-radius: ${({ theme }) => theme.borderRadius.full};
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.fast};
+  white-space: nowrap;
+  min-width: 120px;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.primaryHover};
+    box-shadow: ${({ theme }) => theme.shadows.sm};
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+
+const StyledButton = styled(Button)`
+  &.ant-btn-link {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const StyledHeartIcon = styled(HeartOutlined)`
+  font-size: ${({ theme }) => theme.typography.sizes["2xl"]};
+`;

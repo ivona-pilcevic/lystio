@@ -1,10 +1,17 @@
 export const styledTheme = {
   colors: {
     primary: "#A540F3",
+    primaryLight: "#F3E6FF",
+    primaryHover: "#8E2FE0",
     background: "#FFFFFF",
+    backgroundLight: "#F7F7FD",
     text: "#1F2937",
     textSecondary: "#6B7280",
+    textTertiary: "#9CA3AF",
     border: "#EEE7FF",
+    borderLight: "#F3F4F6",
+    inputBorder: "#E5E7EB",
+    white: "#FFFFFF",
 
     success: "#52C41A",
     warning: "#FAAD14",
@@ -21,6 +28,11 @@ export const styledTheme = {
     gray700: "#374151",
     gray800: "#1F2937",
     gray900: "#111827",
+
+    purple50: "#FAF5FF",
+    purple100: "#F3E6FF",
+    purple500: "#A540F3",
+    purple600: "#8E2FE0",
   },
 
   typography: {
