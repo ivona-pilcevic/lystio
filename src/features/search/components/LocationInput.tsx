@@ -25,7 +25,6 @@ export interface ILocationInputProps {
 }
 
 const LocationInput = ({
-  value,
   onChange,
   onSelect,
   recentSearches = [],
@@ -35,12 +34,6 @@ const LocationInput = ({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (value && inputRef.current) {
-      inputRef.current.value = value;
-    }
-  }, [value]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,10 +50,6 @@ const LocationInput = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange?.(e.target.value);
-  };
 
   const handleRecentClick = (search: IRecentSearch) => {
     if (inputRef.current) {
@@ -86,21 +75,16 @@ const LocationInput = ({
     setIsOpen(false);
   };
 
-  const handleRetrieve = (result: any) => {
-    if (result?.features?.[0]) {
-      const feature = result.features[0];
-      const coordinates = feature.geometry?.coordinates ||
-        feature.center || [0, 0];
-      const name =
-        feature.properties?.name || feature.text || feature.place_name || "";
-
-      if (inputRef.current) {
-        inputRef.current.value = name;
-      }
+  // TODO: handleRetrieve doesn't work?
+  const handleRetrieve = (response: any) => {
+    // console.log('response') => no console log after clicking on search result
+    if (response?.features?.[0]) {
+      const feature = response.features[0];
       onSelect?.({
         id: feature.properties?.mapbox_id || feature.id,
-        name: name,
-        coordinates: coordinates as [number, number],
+        name:
+          feature.properties?.full_address || feature.properties?.name || "",
+        coordinates: feature.geometry?.coordinates || [0, 0],
       });
       setIsOpen(false);
     }
@@ -119,10 +103,12 @@ const LocationInput = ({
         <Input
           ref={inputRef}
           type="text"
-          name="address"
-          defaultValue={value}
-          onChange={handleInputChange}
-          onFocus={() => setIsOpen(true)}
+          name="address-line1"
+          onFocus={() => {
+            if (!inputRef.current?.value) {
+              setIsOpen(true);
+            }
+          }}
           placeholder="Search for address"
           aria-label="Search location"
           autoComplete="address-line1"

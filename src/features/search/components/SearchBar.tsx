@@ -77,7 +77,6 @@ const SearchBar = () => {
             <ControlGroup>
               <Label>Where</Label>
               <LocationInput
-                value={selectedLocation}
                 onChange={setSelectedLocation}
                 onSelect={handleLocationSelect}
                 recentSearches={recentSearches}
